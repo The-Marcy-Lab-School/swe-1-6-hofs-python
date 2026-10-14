@@ -12,12 +12,13 @@ writing the tests instead of only running them.
   - [Question 1: `save_scores`](#question-1-save_scores)
   - [Question 2: `load_scores`](#question-2-load_scores)
   - [Question 3: `.gitignore`](#question-3-gitignore)
-  - [Question 4: write the tests](#question-4-write-the-tests)
+  - [Question 4: `requirements-lock.txt`](#question-4-requirements-locktxt)
+  - [Question 5: write the tests](#question-5-write-the-tests)
 - [Modify](#modify)
-  - [Question 5: `modify.py`](#question-5-modifypy)
-  - [Question 6: split the madlib](#question-6-split-the-madlib)
+  - [Question 6: `modify.py`](#question-6-modifypy)
+  - [Question 7: split the madlib](#question-7-split-the-madlib)
 - [Debug](#debug)
-  - [Question 7: `greeters.py`](#question-7-greeterspy)
+  - [Question 8: `greeters.py`](#question-8-greeterspy)
 - [Submitting](#submitting)
 - [Good luck!](#good-luck)
 
@@ -87,8 +88,8 @@ This assignment has three sections:
 3. Debug
 
 You have been running `pytest` since your first assignment. This time you
-write some of it. Question 4 asks for three tests of your own, and the grader
-runs them.
+write some of it. One question asks for three tests of your own, and the
+grader runs them.
 
 **Your tests live in `student_tests/`, not in `tests/`.** The grader replaces
 `tests/` with its own copy before it runs, so anything you write there is
@@ -112,7 +113,9 @@ save_scores("scores.json", {"Ada": 10, "Zo": 7})
 ```
 
 **JSON** is a text format for data, and almost every program that saves
-anything uses it. The `json` module is part of Python's **standard library**,
+anything uses it. The
+[`json` module](https://docs.python.org/3/library/json.html) is part of
+Python's **standard library**,
 so it needs importing but not installing. `pytest` is a **third-party
 package**, which is why it is in `requirements.txt` and `json` is not.
 
@@ -145,7 +148,39 @@ from your own code.
 
 That is the rule for the whole folder. Commit the recipe, not the meal.
 
-### Question 4: write the tests
+### Question 4: `requirements-lock.txt`
+
+Record every package actually installed in your environment in a new file
+called `requirements-lock.txt`.
+
+```sh
+pip freeze > requirements-lock.txt
+```
+
+Open both files and compare them. `requirements.txt` asks for one package.
+The lock file lists five, each pinned to an exact version, because installing
+`pytest` installed everything `pytest` itself needs.
+
+Three commands show you an environment, and they answer different questions:
+
+- `pip list` prints everything installed, in a table.
+- `pip show pytest` prints one package in detail, including what it requires.
+- `pip freeze` prints everything installed, as `requirements.txt` lines.
+
+Run `pip show pytest` and read the `Requires:` line. Those are the packages
+you did not ask for and now have. The
+[`pip freeze` documentation](https://pip.pypa.io/en/stable/cli/pip_freeze/)
+covers the rest of what it can do.
+
+The difference between the two files is the difference between what you asked
+for and what you got. `requirements.txt` stays loose so a fresh install picks
+up fixes. A lock file is exact, so somebody debugging your code six months
+from now can rebuild the environment you actually had.
+
+The tests check the file exists and that every line pins a version with `==`.
+Do not hand-write it. Let `pip freeze` do it, which is the point.
+
+### Question 5: write the tests
 
 Write three tests in `student_tests/test_temperature.py`, one for each
 function in `src/temperature.py`. Read that file first.
@@ -181,7 +216,7 @@ The first guarantees you are running the pytest inside *this* environment.
 
 ## Modify
 
-### Question 5: `modify.py`
+### Question 6: `modify.py`
 
 `src/modify.py` prints its result at the top level, so that print fires the
 moment anybody imports the file. Move it inside an
@@ -198,7 +233,7 @@ Importing it should print nothing at all. Do not delete the print.
 run the file yourself, and the module's name when somebody imports it. So
 that `if` is asking: *am I the file being run, or am I being imported?*
 
-### Question 6: split the madlib
+### Question 7: split the madlib
 
 `src/madlib_challenge/main.py` holds two functions. `madlib()` tells a story
 and `main()` collects the input.
@@ -210,14 +245,16 @@ Do the following:
 - Import it in `main.py` with `from madlib import madlib`.
 
 One file tells the story, the other talks to the person. That is one concern
-each, which is the whole reason to split a file.
+each, which is the whole reason to split a file. W3Schools has a
+[short page on modules](https://www.w3schools.com/python/python_modules.asp)
+if you want the syntax in one place.
 
 Import it **by name**. You may have seen `from madlib import *`, which pulls
-in everything a module defines. Question 7 is what happens when you do.
+in everything a module defines. The debug question is what happens when you do.
 
 ## Debug
 
-### Question 7: `greeters.py`
+### Question 8: `greeters.py`
 
 `greet_everyone` should return the casual greeting from `helpers.py`.
 
