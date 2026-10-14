@@ -3,4 +3,7 @@ from formal import *
 
 
 def greet_everyone(names):
-    return [greet(name) for name in names]
+    greetings = []
+    for name in names:
+        greetings.append(greet(name))
+    return greetings

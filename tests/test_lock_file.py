@@ -14,8 +14,12 @@ LINE = re.compile(r"^[A-Za-z0-9._-]+==[0-9][\w.+!-]*$")
 def lines():
     if not LOCK.is_file():
         return []
-    return [ln.strip() for ln in LOCK.read_text(encoding="utf-8").splitlines()
-            if ln.strip() and not ln.strip().startswith("#")]
+    written = []
+    for ln in LOCK.read_text(encoding="utf-8").splitlines():
+        ln = ln.strip()
+        if ln and not ln.startswith("#"):
+            written.append(ln)
+    return written
 
 
 def test_lock_file_exists():
@@ -34,7 +38,10 @@ def test_every_line_pins_a_version():
         "No requirements-lock.txt yet. Generate it with: "
         "pip freeze > requirements-lock.txt"
     )
-    loose = [ln for ln in written if not LINE.match(ln)]
+    loose = []
+    for ln in written:
+        if not LINE.match(ln):
+            loose.append(ln)
     assert not loose, (
         "These lines do not pin an exact version: " + ", ".join(loose) +
         ". pip freeze writes name==version for every package."
@@ -43,7 +50,9 @@ def test_every_line_pins_a_version():
 
 def test_lists_pytest_and_its_dependencies():
     """requirements-lock.txt - pytest and the packages it installed with it"""
-    names = {ln.split("==")[0].lower() for ln in lines()}
+    names = set()
+    for ln in lines():
+        names.add(ln.split("==")[0].lower())
     assert "pytest" in names, (
         "pytest is not in the lock file. Run pip freeze inside the virtual "
         "environment where you installed it."

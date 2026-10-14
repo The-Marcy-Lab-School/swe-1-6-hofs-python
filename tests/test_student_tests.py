@@ -34,8 +34,11 @@ def test_three_tests_with_docstrings():
     )
 
     bodies = re.split(r"^def test_\w+\s*\([^)]*\):", text, flags=re.M)[1:]
-    missing = [n for n, b in zip(names, bodies)
-               if not re.match(r"\s*(\"\"\"|''')", b)]
+    missing = []
+    for i in range(len(names)):
+        body = bodies[i] if i < len(bodies) else ""
+        if not re.match(r"\s*(\"\"\"|''')", body):
+            missing.append(names[i])
     assert not missing, f"These need a docstring: {', '.join(missing)}"
 
 
@@ -57,7 +60,7 @@ def test_uses_pytest_approx():
 def test_student_tests_pass():
     """student tests - all of them pass against src/temperature.py"""
     if not functions(written()):
-        raise AssertionError("No test functions written yet.")
+        assert False, "No test functions written yet."
 
     root = STUDENT.parent
     result = subprocess.run(
