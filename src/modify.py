@@ -1,7 +1,11 @@
-def only_one():
-    return "I stand alone."
-
-
-# This line runs the moment anybody imports this file. That is almost never
-# what you want.
-print(only_one())
+def run_menu_choice(choice, tasks):
+    if choice == "add":
+        tasks.append("new task")
+        return f"{len(tasks)} task(s)"
+    elif choice == "clear":
+        tasks.clear()
+        return "0 task(s)"
+    elif choice == "count":
+        return f"{len(tasks)} task(s)"
+    else:
+        return "Unknown choice"

@@ -1,24 +1,28 @@
-# Modules, Virtual Environments, and pytest
+# Higher-Order Functions
 
-Practice splitting a program across files, keeping an environment tidy, and
-writing the tests instead of only running them.
+Practice passing functions around.
 
-**Practicing:** modules, imports, `__main__`, JSON, writing tests
+**Practicing:** callbacks, higher-order functions, `key=`, functions as values
 
 - [AI Use on This Assignment](#ai-use-on-this-assignment)
 - [Setup](#setup)
 - [Before You Start](#before-you-start)
 - [From Scratch](#from-scratch)
-  - [Question 1: `save_scores`](#question-1-save_scores)
-  - [Question 2: `load_scores`](#question-2-load_scores)
-  - [Question 3: `.gitignore`](#question-3-gitignore)
-  - [Question 4: `requirements-lock.txt`](#question-4-requirements-locktxt)
-  - [Question 5: write the tests](#question-5-write-the-tests)
+  - [Question 1: `my_for_each`](#question-1-my_for_each)
+  - [Question 2: `my_map`](#question-2-my_map)
+  - [Question 3: `my_filter`](#question-3-my_filter)
+  - [Question 4: `my_find`](#question-4-my_find)
+  - [Question 5: `describe_longest`](#question-5-describe_longest)
+  - [Question 6: `make_announcer`](#question-6-make_announcer)
 - [Modify](#modify)
-  - [Question 6: `modify.py`](#question-6-modifypy)
-  - [Question 7: split the madlib](#question-7-split-the-madlib)
+  - [Question 7: `run_menu_choice`](#question-7-run_menu_choice)
+  - [Question 8: `safe_int`](#question-8-safe_int)
+  - [Question 9: `set_age`](#question-9-set_age)
+  - [Question 10: `ask_for_number`](#question-10-ask_for_number)
 - [Debug](#debug)
-  - [Question 8: `greeters.py`](#question-8-greeterspy)
+  - [Question 11: `log_each_name`](#question-11-log_each_name)
+  - [Question 12: `tallest_user`](#question-12-tallest_user)
+  - [Question 13: `load_setting`](#question-13-load_setting)
 - [Submitting](#submitting)
 - [Good luck!](#good-luck)
 
@@ -28,11 +32,12 @@ Use whichever mode matches where you are with this material. Both are fine,
 and most people move between them as a concept clicks.
 
 **Tutor mode.** The AI explains, questions, quizzes, and critiques, and you
-write every line you submit. For this assignment that means asking it what
-`__name__` holds when a file is imported, or having it quiz you on what
-belongs in `.gitignore` and why. Ask it a hundred questions — that is the
-whole point. What you do not do is ask it for the function. Paste this at the
-start of a chat and it will hold for the rest of the conversation:
+write every line you submit. For this assignment that means asking it what the
+difference is between `print` and `print()`, or having it quiz you on when to
+pass a function and when to call it. Ask it a hundred
+questions — that is the whole point. What you do not do is ask it for the
+function. Paste this at the start of a chat and it will hold for the rest of
+the conversation:
 
 > You are acting as a tutor. Your job is to explain what this coding question
 > is asking, clarify confusing wording, and highlight the relevant concepts I
@@ -44,8 +49,8 @@ start of a chat and it will hold for the rest of the conversation:
 
 **Implementer mode.** You write a specification first, the AI writes code from
 it, and then you verify that code line by line. For this assignment your spec
-has to say which file each function lives in and what each one imports. If
-what comes back does more than you asked for, reject it — over-delivery is a
+has to say which arguments are functions and what each callback returns. If what
+comes back does more than you asked for, reject it — over-delivery is a
 defect, and catching it is part of the job.
 
 You own every line either way, and you will be asked to explain it.
@@ -64,7 +69,7 @@ pip install -r requirements.txt
 git checkout -b draft
 ```
 
-Run `pytest` to test the entire assignment, or `pytest -k madlib` for one
+Run `pytest` to test the entire assignment, or `pytest -k my_map` for one
 question. Every push runs the tests on GitHub and reports your score in the
 **Actions** tab.
 
@@ -87,187 +92,172 @@ This assignment has three sections:
 2. Modify
 3. Debug
 
-You have been running `pytest` since your first assignment. This time you
-write some of it. One question asks for three tests of your own, and the
-grader runs them.
+The single most important thing in the whole assignment:
 
-**Your tests live in `student_tests/`, not in `tests/`.** The grader replaces
-`tests/` with its own copy before it runs, so anything you write there is
-thrown away. `student_tests/` is yours and is never touched.
+```python
+print       # the function itself
+print()     # CALLS it right now, and evaluates to None
+```
 
-If you see `ModuleNotFoundError` at any point, check whether your virtual
-environment is on before you check anything else. That error means Python
-cannot find a package, and the usual reason is that you are not in the
-environment where it was installed.
+**Passing `print` hands over the function. Passing `print()` runs it
+immediately and hands over `None`, which is not callable.** Two questions here
+are a version of that mistake. Watch those parentheses.
 
 ## From Scratch
 
-### Question 1: `save_scores`
+Write your solutions in `src/from_scratch.py`.
 
-Write a function `save_scores` in `src/scores.py` that takes a file `path` and
-a `scores` dictionary, and writes the dictionary to that file as JSON.
+### Question 1: `my_for_each`
 
-```python
-save_scores("scores.json", {"Ada": 10, "Zo": 7})
-# the file now holds {"Ada": 10, "Zo": 7} as text
-```
+Write a function `my_for_each` that takes a list `values` and a `callback`. It
+should:
 
-**JSON** is a text format for data, and almost every program that saves
-anything uses it. The
-[`json` module](https://docs.python.org/3/library/json.html) is part of
-Python's **standard library**,
-so it needs importing but not installing. `pytest` is a **third-party
-package**, which is why it is in `requirements.txt` and `json` is not.
-
-Hint: `json` has a function that writes straight to an open file, and another
-that turns a value into a string. Which one do you want here?
-
-### Question 2: `load_scores`
-
-Write a function `load_scores` in `src/scores.py` that takes a file `path` and
-returns the dictionary stored in it.
+- Iterate through the list. On each iteration:
+  - Call the `callback` with the value at the current index as its only
+    argument
+- Not return anything
 
 ```python
-load_scores("scores.json")
-# {"Ada": 10, "Zo": 7} — read back from the file
-load_scores("not_there.json")
-# {} — no file yet, so no scores yet
+doubled = []
+my_for_each([1, 2, 3], lambda num: doubled.append(num * 2))
+# doubled is now [2, 4, 6] — the callback ran once per value
 ```
 
-That second case is the one that matters. A program that saves scores has to
-run a first time, when the file does not exist. Crashing is not an answer.
+This is your own version of a loop somebody else already wrote for you. Four
+lines, and then every higher-order function you ever use makes sense.
 
-### Question 3: `.gitignore`
+### Question 2: `my_map`
 
-Add `.venv/` and `__pycache__/` to `.gitignore` so neither is committed.
+Write a function `my_map` that takes a list `values` and a `callback`. It
+should return a **new** list of what the callback gave back each time.
 
-`__pycache__` holds the compiled copies Python makes so it can start faster
-next time, and `.venv/` holds every installed package. Both are rebuilt from
-what you *do* commit: `.venv/` from `requirements.txt`, and `__pycache__`
-from your own code.
-
-That is the rule for the whole folder. Commit the recipe, not the meal.
-
-### Question 4: `requirements-lock.txt`
-
-Record every package actually installed in your environment in a new file
-called `requirements-lock.txt`.
-
-```sh
-pip freeze > requirements-lock.txt
+```python
+my_map([1, 2, 3], lambda num: num * 2)
+# [2, 4, 6] — each value transformed
+my_map(["Alice", "Bob"], len)
+# [5, 3] — note that `len` is passed with no parentheses
 ```
 
-Open both files and compare them. `requirements.txt` asks for one package.
-The lock file lists five, each pinned to an exact version, because installing
-`pytest` installed everything `pytest` itself needs.
+Do not change the original list.
 
-Three commands show you an environment, and they answer different questions:
+### Question 3: `my_filter`
 
-- `pip list` prints everything installed, in a table.
-- `pip show pytest` prints one package in detail, including what it requires.
-- `pip freeze` prints everything installed, as `requirements.txt` lines.
+Write a function `my_filter` that takes a list `values` and a `callback`. It
+should return a **new** list of every value the callback said yes to.
 
-Run `pip show pytest` and read the `Requires:` line. Those are the packages
-you did not ask for and now have. The
-[`pip freeze` documentation](https://pip.pypa.io/en/stable/cli/pip_freeze/)
-covers the rest of what it can do.
+```python
+my_filter([10, 50, 100], lambda n: n > 50)
+# [100] — only 100 passes the test
+my_filter([1, 2, 3], lambda n: False)
+# [] — nothing passes, so nothing comes back
+```
 
-The difference between the two files is the difference between what you asked
-for and what you got. `requirements.txt` stays loose so a fresh install picks
-up fixes. A lock file is exact, so somebody debugging your code six months
-from now can rebuild the environment you actually had.
+### Question 4: `my_find`
 
-The tests check the file exists and that every line pins a version with `==`.
-Do not hand-write it. Let `pip freeze` do it, which is the point.
+Write a function `my_find` that returns the **first** value the callback says
+yes to, or `None` when nothing does.
 
-### Question 5: write the tests
+```python
+my_find([1, 2, 3], lambda num: num % 2 == 0)
+# 2 — the first even number, and it stops looking there
+my_find([1, 3, 5], lambda num: num % 2 == 0)
+# None — nothing passed
+```
 
-Write three tests in `student_tests/test_temperature.py`, one for each
-function in `src/temperature.py`. Read that file first.
+This is important: the **callback** returns `True` or `False`, while the
+**higher-order function** returns a value or `None`. Two different jobs, ok?
 
-Do the following:
+### Question 5: `describe_longest`
 
-- Give every test a name starting with `test_` and a **docstring** saying what
-  it checks.
-- For `is_freezing`, assert the result with `is True` and `is False`.
-- For `average`, compare a decimal result with `pytest.approx`.
-- Make sure all three pass.
+Write a function `describe_longest` that takes a list of words and describes
+the longest one.
 
-Why those two:
+```python
+describe_longest(["hi", "hello", "hey"])
+# "hello is 5 letters" — the longest of the three
+describe_longest([])
+# "no words" — nothing to be longest
+```
+
+Hint: `max()` takes a `key=` argument, which is a function it calls on each
+value to decide what to compare:
 
 ```py
-1 == True        # True, because a bool IS an int in Python
-1 is True        # False, which is what you wanted to know
-0.1 + 0.2 == 0.3 # False, and nothing is wrong with your code
+max(users, key=lambda user: user["age"])
 ```
 
-`== True` passes for any value equal to 1, so it does not prove you got a
-boolean back. And a decimal comparison with `==` fails on arithmetic that is
-perfectly correct, which is why `pytest.approx` exists.
+What function would you hand it to compare words by how long they are?
+W3Schools has a [short page on `lambda`](https://www.w3schools.com/python/python_lambda.asp)
+if that syntax is new.
 
-Run yours with:
+### Question 6: `make_announcer`
 
-```sh
-python3 -m pytest student_tests
+Write a function `make_announcer` that takes a function and returns a **new**
+function. The new one prints `Calling <name>` and then does whatever the
+original did.
+
+```python
+def add(a, b):
+    return a + b
+
+announced = make_announcer(add)
+announced(2, 3)
+# prints "Calling add", and returns 5
 ```
 
-Hint: `python3 -m pytest` and plain `pytest` are not always the same command.
-The first guarantees you are running the pytest inside *this* environment.
+Two things make this work. A function knows its own name as `func.__name__`,
+and `*args, **kwargs` lets your wrapper accept whatever the wrapped function
+accepts and pass it straight along.
+
+The wrapper has to **return** what the wrapped function returned. A wrapper
+that forgets is the most common bug in this pattern, because the printing
+still looks right.
+
+This is what `@decorator` syntax does underneath. `@make_announcer` above a
+definition is another way of writing `add = make_announcer(add)`.
 
 ## Modify
 
-### Question 6: `modify.py`
+Change the function already in `src/modify.py`.
 
-`src/modify.py` prints its result at the top level, so that print fires the
-moment anybody imports the file. Move it inside an
-`if __name__ == "__main__":` guard.
+### Question 7: `run_menu_choice`
 
-```sh
-python3 src/modify.py
-# I stand alone. — running it directly still prints
-```
-
-Importing it should print nothing at all. Do not delete the print.
-
-`__name__` is a variable Python sets for you. It holds `"__main__"` when you
-run the file yourself, and the module's name when somebody imports it. So
-that `if` is asking: *am I the file being run, or am I being imported?*
-
-### Question 7: split the madlib
-
-`src/madlib_challenge/main.py` holds two functions. `madlib()` tells a story
-and `main()` collects the input.
+`run_menu_choice` picks what to do with an `if`/`elif` chain. Replace the
+chain with a **dictionary of functions**, keeping the behavior identical.
 
 Do the following:
 
-- Create `src/madlib_challenge/madlib.py`.
-- Move the whole `madlib` function into it.
-- Import it in `main.py` with `from madlib import madlib`.
+- Write a small function for each of `add`, `clear` and `count`.
+- Put them in a dictionary, with the choice as the key.
+- Look the choice up and call what you find.
+- Keep returning `"Unknown choice"` for anything not in the dictionary.
 
-One file tells the story, the other talks to the person. That is one concern
-each, which is the whole reason to split a file. W3Schools has a
-[short page on modules](https://www.w3schools.com/python/python_modules.asp)
-if you want the syntax in one place.
+The tests check that no `elif` is left.
 
-Import it **by name**. You may have seen `from madlib import *`, which pulls
-in everything a module defines. The debug question is what happens when you do.
+A function is a value, so it can live in a dictionary exactly like a string
+can. Adding a fourth menu option then means adding one entry rather than
+editing a chain.
 
 ## Debug
 
-### Question 8: `greeters.py`
+### Question 8: `log_each_name`
 
-`greet_everyone` should return the casual greeting from `helpers.py`.
+`log_each_name` should print each name. It prints one blank line and then
+raises `TypeError: 'NoneType' object is not callable`.
 
-```python
-greet_everyone(["Ada"])
-# want ["Hey Ada!"], gets ["Good evening, Ada."]
+Look again at the `print` and `print()` box above.
+
+### Question 9: `tallest_user`
+
+`tallest_user` should return the user with the greatest height. It raises a
+`TypeError` instead.
+
+```text
+TypeError: 'int' object is not callable
 ```
 
-Both `helpers.py` and `formal.py` define a function called `greet`, and
-`greeters.py` star-imports both. Work out which one wins, and why reading the
-file does not tell you without opening the other two.
-
-Fix it so the casual greeting is the one that runs.
+Read that message literally. Something in the code is trying to call a value
+that is a number.
 
 ## Submitting
 
@@ -282,6 +272,5 @@ then open a pull request to your instructor for feedback.
 
 ## Good luck!
 
-Every program past a few hundred lines lives in more than one file, and every
-one of them has a `.gitignore`. This is the assignment where your projects
-start looking like real ones. You got this!
+Once passing functions around feels normal, a huge amount of Python stops
+looking like magic. You got this!
